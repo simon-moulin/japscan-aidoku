@@ -3,17 +3,15 @@ import {
     Html,
     MangaPageResult,
     MangaStatus,
-    MangaContentRating,
     MangaViewer,
     Chapter,
     Page,
-    Filter,
-    FilterType,
     ValueRef,
+    console
 } from 'aidoku-as';
 
 export class Parser {
-    parseHomePage(document: Html, listType: boolean): MangaPageResult {
+    parseHomePage(document: Html): MangaPageResult {
         let result: Manga[] = [];
 
         let elements = document.select('div.d-flex > div').array();
@@ -71,9 +69,13 @@ export class Parser {
         for (let i=0; i < infos.length; i++) {
             let infoTxt = infos[i].select('span').text().trim();
             if (infoTxt == 'Auteur(s):')  manga.author = infos[i].text().trim().split(" ").slice(1).join(' ');
-            // TODO: check the manga status
-
-            // TODO: Add type in tags
+            if (infoTxt == 'Statut:') {
+                if (infos[i].text().trim().split(" ").slice(1).join(' ').trim() == 'Terminé') {
+                    manga.status = MangaStatus.Completed;
+                } else {
+                    manga.status = MangaStatus.Ongoing;
+                }
+            }
 
             if (infoTxt == 'Genre(s):') {
                 tags = infos[i].text().trim().split(":").slice(1).join().split(', ');
@@ -83,10 +85,8 @@ export class Parser {
         manga.categories = tags;
         manga.description = document.select("p.list-group-item-primary").text().trim();
 
-
         manga.cover_url = `https://www.japscan.ws/imgs/mangas/${mangaId}.jpg`
         manga.url = `https://www.japscan.ws/manga/${mangaId}/`;
-        manga.status = MangaStatus.Ongoing;
         manga.viewer = MangaViewer.RTL;
         document.close();
         return manga
@@ -94,12 +94,49 @@ export class Parser {
 
     getChapterList(document: Html, mangaId: string): Chapter[] {
         let chapters: Chapter[] = [];
+
+        let elements = document.select('div#chapters_list > div > div.chapters_list').array();
+
+        for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            const url = `https://www.japscan.ws${element.select('a').attr('href')}`;
+            const id = element.select('a').attr('href').split('/lecture-en-ligne/').join('').trim();
+            const title = element.select('a').text().trim();
+
+            
+            let dateString = element.select('span').text().trim();
+            let dateObject = ValueRef.string(dateString);
+            let date = dateObject.toDate('d MMM yyyy', 'en_US')
+
+            let curr_chapter = new Chapter(id, title);
+            curr_chapter.url = url;
+            curr_chapter.lang = 'fr';
+            curr_chapter.dateUpdated = date;
+            chapters.push(curr_chapter);
+        }
+        document.close();
         return chapters;
     }
 
     getPageList(document: Html): Page[] {
-        let page: Page[] = [];
-        return page;
+        let pages: Page[] = [];
+        const elements = document.select('#pages > option').array();
+        if (elements.length == 0) {
+            const tmp = new Page(0);
+            tmp.url = 'https://i.imgur.com/ovHuAps.png'
+            pages.push(tmp);
+        }
+
+        for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            let page = new Page(i);
+            const url = element.attr('data-img')
+            page.url = `https://cdn.statically.io/img/${url.split('https://').join('')}`;
+            console.log(`https://cdn.statically.io/img/${url.split('https://').join('')}`);
+            pages.push(page);
+        }
+
+        return pages;
     }
 }
 

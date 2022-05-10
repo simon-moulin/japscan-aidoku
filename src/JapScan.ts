@@ -8,7 +8,7 @@ import {
     Page,
     Request,
     HttpMethod,
-    // DeepLink,
+    console
 } from 'aidoku-as';
 
 import { Parser, FilterMap } from './helper';
@@ -31,7 +31,7 @@ export class JapScan extends Source {
         let request     = Request.create(HttpMethod.GET);
         request.url     = url;
         request.headers = this.headers;
-        return this.parser.parseHomePage(request.html(), (url.includes('search') == true));
+        return this.parser.parseHomePage(request.html());
     }
 
     getMangaListing(listing: Listing, page: number): MangaPageResult {
@@ -50,14 +50,14 @@ export class JapScan extends Source {
 
     getChapterList(mangaId: string): Chapter[] {
         let request     = Request.create(HttpMethod.GET);
-        request.url     = `${this.baseUrl}/manga/${mangaId}`;
+        request.url     = `${this.baseUrl}/manga/${mangaId}/`;
         request.headers = this.headers;
         return this.parser.getChapterList(request.html(), mangaId);
     }
 
     getPageList(chapterId: string): Page[] {
         let request     = Request.create(HttpMethod.GET);
-        request.url     = `${this.baseUrl}/roll_manga/${chapterId}/1.html`;
+        request.url     = `${this.baseUrl}/lecture-en-ligne/${chapterId}1.html`;
         request.headers = this.headers;
         return this.parser.getPageList(request.html());
     }

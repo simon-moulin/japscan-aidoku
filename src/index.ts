@@ -1,4 +1,4 @@
-import { ValueRef, ArrayRef, Filter, Listing, Request, Chapter, Manga } from "aidoku-as";
+import { ValueRef, ArrayRef, Filter, Listing, Request } from "aidoku-as";
 
 import { JapScan as Source } from "./JapScan";
 
